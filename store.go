@@ -6,20 +6,20 @@ import (
 	"sync"
 )
 
-type store struct{ m *sync.Map }
+type Store struct{ m *sync.Map }
 
-func NewDB() *store { return &store{new(sync.Map)} }
+func NewDB() *Store { return &Store{new(sync.Map)} }
 
-func (s *store) Set(key, value string) { s.m.Store(key, kvPair{key, value}) }
+func (s *Store) Set(key, value string) { s.m.Store(key, kvPair{key, value}) }
 
-func (s *store) Exists(key string) bool {
+func (s *Store) Exists(key string) bool {
 	if _, err := s.get(key); err != nil {
 		return false
 	}
 	return true
 }
 
-func (s *store) get(key string) (kvPair, error) {
+func (s *Store) get(key string) (kvPair, error) {
 	if v, ok := s.m.Load(key); !ok {
 		return kvPair{}, ErrNotExist
 	} else {
@@ -27,7 +27,7 @@ func (s *store) get(key string) (kvPair, error) {
 	}
 }
 
-func (s *store) GetV(key string, defaultValue ...string) (string, error) {
+func (s *Store) GetV(key string, defaultValue ...string) (string, error) {
 	kv, err := s.get(key)
 	if err != nil {
 		// 如果有设置默认值,将返回defaultValue中的第一个作为默认值
@@ -39,7 +39,7 @@ func (s *store) GetV(key string, defaultValue ...string) (string, error) {
 	return kv.Value, nil
 }
 
-func (s *store) getAll(pattern string) (kvPairs, error) {
+func (s *Store) getAll(pattern string) (kvPairs, error) {
 	kvs := make(kvPairs, 0)
 	s.m.Range(func(_, value interface{}) bool {
 		kv := value.(kvPair)
@@ -56,7 +56,7 @@ func (s *store) getAll(pattern string) (kvPairs, error) {
 	return kvs, nil
 }
 
-func (s *store) GetVs(pattern string) ([]string, error) {
+func (s *Store) GetVs(pattern string) ([]string, error) {
 	vs := make([]string, 0)
 	kvs, err := s.getAll(pattern)
 	if err != nil {
@@ -69,9 +69,9 @@ func (s *store) GetVs(pattern string) ([]string, error) {
 	return vs, nil
 }
 
-func (s *store) Del(key string) { s.m.Delete(key) }
+func (s *Store) Del(key string) { s.m.Delete(key) }
 
-func (s *store) purge() {
+func (s *Store) purge() {
 	s.m.Range(func(key, _ interface{}) bool {
 		s.m.Delete(key)
 		return true
