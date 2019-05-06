@@ -71,7 +71,7 @@ func (s *Store) GetVs(pattern string) ([]string, error) {
 
 func (s *Store) Del(key string) { s.m.Delete(key) }
 
-func (s *Store) purge() {
+func (s *Store) Purge() {
 	s.m.Range(func(key, _ interface{}) bool {
 		s.m.Delete(key)
 		return true
