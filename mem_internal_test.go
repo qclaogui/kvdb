@@ -6,7 +6,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-func TestStoreX_Get(t *testing.T) {
+func TestMem_Get(t *testing.T) {
 	var tests = map[string]struct {
 		key   string
 		value string
@@ -17,11 +17,11 @@ func TestStoreX_Get(t *testing.T) {
 		"case2": {"/db/pass", "foo", nil, kvPair{"/db/pass", "foo"}},
 		"case3": {"/missing", "", ErrNotExist, kvPair{}},
 	}
-	db := NewDB()
+	db := NewMem()
 	for name, test := range tests {
-		// Set first
+		// Put first
 		if test.err == nil {
-			db.Set(test.key, test.value)
+			db.Put(test.key, test.value)
 		}
 
 		t.Run(name, func(t *testing.T) {
@@ -66,19 +66,19 @@ var getAllTests = map[string]struct {
 		kvPairs{
 			kvPair{"/app/upstream/host1", "203.0.113.0.1:8080"},
 			kvPair{"/app/upstream/host2", "203.0.113.0.2:8080"}}},
-	"case4": {"[]a]", ErrNoMatch, nil},
-	"case5": {"/app/missing/*", ErrNoMatch, nil},
+	"case4": {"[]a]", ErrNoMatched, nil},
+	"case5": {"/app/missing/*", ErrNoMatched, nil},
 }
 
-func TestStoreX_GetAll(t *testing.T) {
-	db := NewDB()
+func TestMem_GetAll(t *testing.T) {
+	db := NewMem()
 	for key, value := range getAllTestInput {
-		db.Set(key, value)
+		db.Put(key, value)
 	}
 
 	for name, test := range getAllTests {
 		t.Run(name, func(t *testing.T) {
-			got, err := db.getAll(test.pattern)
+			got, err := db.getAllMatched(test.pattern)
 			if df := cmp.Diff(err, test.err); df != "" {
 				t.Errorf("👉 \x1b[92m%s\x1b[39m", df)
 			}

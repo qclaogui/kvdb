@@ -6,20 +6,26 @@ import (
 	"sync"
 )
 
-type Store struct{ m *sync.Map }
+type mem struct{ m *sync.Map }
 
-func NewDB() *Store { return &Store{new(sync.Map)} }
+func NewMem() *mem { return &mem{new(sync.Map)} }
 
-func (s *Store) Set(key, value string) { s.m.Store(key, kvPair{key, value}) }
+func (s *mem) Put(key, value string) { s.m.Store(key, kvPair{key, value}) }
 
-func (s *Store) Exists(key string) bool {
+func (s *mem) PutMany(m map[string]string) {
+	for k, v := range m {
+		s.Put(k, v)
+	}
+}
+
+func (s *mem) Exists(key string) bool {
 	if _, err := s.get(key); err != nil {
 		return false
 	}
 	return true
 }
 
-func (s *Store) get(key string) (kvPair, error) {
+func (s *mem) get(key string) (kvPair, error) {
 	if v, ok := s.m.Load(key); !ok {
 		return kvPair{}, ErrNotExist
 	} else {
@@ -27,7 +33,7 @@ func (s *Store) get(key string) (kvPair, error) {
 	}
 }
 
-func (s *Store) GetV(key string, defaultValue ...string) (string, error) {
+func (s *mem) Get(key string, defaultValue ...string) (string, error) {
 	kv, err := s.get(key)
 	if err != nil {
 		// 如果有设置默认值,将返回defaultValue中的第一个作为默认值
@@ -39,7 +45,7 @@ func (s *Store) GetV(key string, defaultValue ...string) (string, error) {
 	return kv.Value, nil
 }
 
-func (s *Store) getAll(pattern string) (kvPairs, error) {
+func (s *mem) getAllMatched(pattern string) (kvPairs, error) {
 	kvs := make(kvPairs, 0)
 	s.m.Range(func(_, value interface{}) bool {
 		kv := value.(kvPair)
@@ -50,15 +56,15 @@ func (s *Store) getAll(pattern string) (kvPairs, error) {
 	})
 	// 查看是否匹配到
 	if len(kvs) == 0 {
-		return nil, ErrNoMatch
+		return nil, ErrNoMatched
 	}
 	sort.Sort(kvs)
 	return kvs, nil
 }
 
-func (s *Store) GetVs(pattern string) ([]string, error) {
+func (s *mem) GetMany(pattern string) ([]string, error) {
 	vs := make([]string, 0)
-	kvs, err := s.getAll(pattern)
+	kvs, err := s.getAllMatched(pattern)
 	if err != nil {
 		return nil, err
 	}
@@ -69,9 +75,9 @@ func (s *Store) GetVs(pattern string) ([]string, error) {
 	return vs, nil
 }
 
-func (s *Store) Del(key string) { s.m.Delete(key) }
+func (s *mem) Del(key string) { s.m.Delete(key) }
 
-func (s *Store) Purge() {
+func (s *mem) Flush() {
 	s.m.Range(func(key, _ interface{}) bool {
 		s.m.Delete(key)
 		return true
