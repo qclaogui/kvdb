@@ -1,6 +1,8 @@
 package kvdb_test
 
 import (
+	"fmt"
+	"log"
 	"testing"
 
 	"github.com/qclaogui/kvdb"
@@ -8,6 +10,27 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
+func ExampleMem_GetMany() {
+	m := kvdb.NewMem()
+	m.Put("/app/database/username", "admin")
+	m.Put("/app/database/password", "123456789")
+	m.Put("/app/port", "80")
+	v, err := m.Get("/app/database/username")
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Value: %s\n", v)
+
+	if ks, err := m.GetMany("/app/*/*"); err == nil {
+		for _, v := range ks {
+			fmt.Printf("Value: %s\n", v)
+		}
+	}
+	// Output:
+	// Value: admin
+	// Value: 123456789
+	// Value: admin
+}
 func TestMem_GetValue(t *testing.T) {
 	var tests = map[string]struct {
 		key   string
@@ -80,6 +103,9 @@ func TestDel(t *testing.T) {
 	want = ""
 	got, err = db.Get("/app/port")
 	if df := cmp.Diff(err, kvdb.ErrNotExist); df != "" {
+		t.Errorf("👉 \x1b[92m%s\x1b[39m", df)
+	}
+	if df := cmp.Diff(got, want); df != "" {
 		t.Errorf("👉 \x1b[92m%s\x1b[39m", df)
 	}
 }

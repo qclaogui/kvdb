@@ -1,5 +1,6 @@
 package kvdb
 
+// Storage 接口
 type Storage interface {
 	Put(string, string)
 	PutMany(map[string]string)

@@ -8,6 +8,7 @@ import (
 
 type mem struct{ m *sync.Map }
 
+// NewMem new a map to store
 func NewMem() *mem { return &mem{new(sync.Map)} }
 
 func (s *mem) Put(key, value string) { s.m.Store(key, kvPair{key, value}) }
@@ -26,13 +27,14 @@ func (s *mem) Exists(key string) bool {
 }
 
 func (s *mem) get(key string) (kvPair, error) {
-	if v, ok := s.m.Load(key); !ok {
+	v, ok := s.m.Load(key)
+	if !ok {
 		return kvPair{}, ErrNotExist
-	} else {
-		return v.(kvPair), nil
 	}
+	return v.(kvPair), nil
 }
 
+// Get 获取key的相应value
 func (s *mem) Get(key string, defaultValue ...string) (string, error) {
 	kv, err := s.get(key)
 	if err != nil {
@@ -62,6 +64,7 @@ func (s *mem) getAllMatched(pattern string) (kvPairs, error) {
 	return kvs, nil
 }
 
+// GetMany 获取匹配到pattern的所有keys的value
 func (s *mem) GetMany(pattern string) ([]string, error) {
 	vs := make([]string, 0)
 	kvs, err := s.getAllMatched(pattern)
