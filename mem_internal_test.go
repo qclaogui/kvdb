@@ -1,9 +1,8 @@
 package kvdb
 
 import (
+	"reflect"
 	"testing"
-
-	"github.com/google/go-cmp/cmp"
 )
 
 func TestMem_Get(t *testing.T) {
@@ -26,13 +25,18 @@ func TestMem_Get(t *testing.T) {
 
 		t.Run(name, func(t *testing.T) {
 			got, err := db.get(test.key)
-			if df := cmp.Diff(err, test.err); df != "" {
-				t.Errorf("👉 \x1b[92m%s\x1b[39m", df)
-			}
-			if df := cmp.Diff(got, test.want); df != "" {
-				t.Errorf("👉 \x1b[92m%s\x1b[39m", df)
-			}
+			assertEqual(t, err, test.err)
+			assertEqual(t, got, test.want)
 		})
+	}
+}
+
+func assertEqual(t *testing.T, got, want interface{}) {
+	t.Helper()
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("\nOops 🔥\x1b[91m Failed asserting that\x1b[39m\n"+
+			"✘got: %v\n\x1b[92m"+
+			"want: %v\x1b[39m", got, want)
 	}
 }
 
@@ -70,7 +74,7 @@ var getAllTests = map[string]struct {
 	"case5": {"/app/missing/*", ErrNoMatched, nil},
 }
 
-func TestMem_GetAll(t *testing.T) {
+func TestMem_GetAllMatched(t *testing.T) {
 	db := NewMem()
 	for key, value := range getAllTestInput {
 		db.Put(key, value)
@@ -79,12 +83,8 @@ func TestMem_GetAll(t *testing.T) {
 	for name, test := range getAllTests {
 		t.Run(name, func(t *testing.T) {
 			got, err := db.getAllMatched(test.pattern)
-			if df := cmp.Diff(err, test.err); df != "" {
-				t.Errorf("👉 \x1b[92m%s\x1b[39m", df)
-			}
-			if df := cmp.Diff(got, test.want); df != "" {
-				t.Errorf("👉 \x1b[92m%s\x1b[39m", df)
-			}
+			assertEqual(t, err, test.err)
+			assertEqual(t, got, test.want)
 		})
 	}
 }
