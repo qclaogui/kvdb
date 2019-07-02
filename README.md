@@ -12,6 +12,8 @@ key value DB
 
 ## Usage
 
+[Run in Playground](https://play.golang.org/p/2oUq42FLO9H)
+
 ```go
 package main
 
@@ -31,16 +33,18 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("Value: %s\n", v)
+	fmt.Printf("Get \t\tValue: %s\n\n", v)
 
 	if ks, err := m.GetMany("/app/*/*"); err == nil {
 		for _, v := range ks {
-			fmt.Printf("Value: %s\n", v)
+			fmt.Printf("GetMany \tValue: %s\n", v)
 		}
 	}
-	// Output:
-	// Value: qclaogui
-	// Value: 123456789
-	// Value: qclaogui
 }
+// Output:
+// Get 		Value: qclaogui
+
+// GetMany 	Value: 123456789
+// GetMany 	Value: qclaogui
+
 ```
